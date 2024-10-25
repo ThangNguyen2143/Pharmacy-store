@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id       Int      @id @default(autoincrement())
+  username String   @db.VarChar(255)
+  email    String   @unique @db.VarChar(255)
+  password String   @db.VarChar(255)
+  role     Role
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+}
+
+model product {
+  id            Int    @id @default(autoincrement())
+  name          String @db.VarChar(255)
+  handle        String
+  stored        Int
+  unit          String @db.VarChar(50)
+  price         Float
+  howPack       String
+  ingredient    String @db.VarChar(255)
+  typeUse       String
+  destination   String
+  dosage        String
+  typeProductId Int
+  cartItem      cartitem[]
+  typeProduct   typeproduct @relation(fields: [typeProductId], references: [id])
+  createAt      DateTime @default(now())
+  updateAt      DateTime @updatedAt
+  @@index([typeProductId], map: "product_typeProductId_fkey")
+}
+
+model groupproducttoproduct {
+  A Int
+  B Int
+
+  @@unique([A, B], map: "_groupProductToproduct_AB_unique")
+  @@index([B], map: "_groupProductToproduct_B_index")
+  @@map("_groupproducttoproduct")
+}
+
+model cart {
+  id            Int @id @default(autoincrement())
+  totalQuantity Int @db.SmallInt
+  cartItem cartitem[]
+}
+
+model cartitem {
+  quantity  Int @db.TinyInt
+  productId Int
+  cartId    Int
+  cart cart @relation(fields: [cartId], references: [id])
+  product product @relation(fields: [productId], references: [id])
+  @@id([productId, cartId])
+  @@index([cartId], map: "cartItem_cartId_fkey")
+}
+
+model depotform {
+  id       Int      @id @default(autoincrement())
+  createAt DateTime @default(now())
+  Sup_ID   Int
+  supplier  suppiler @relation(fields: [Sup_ID], references: [id])
+  dfd     depotformdetail[]
+  @@index([Sup_ID], map: "depotForm_Sup_ID_fkey")
+}
+
+model depotformdetail {
+  dF_id     Int
+  productId Int
+  quantity  Int
+  unit      String
+  price     Float
+  depotForm depotform @relation(fields: [dF_id], references: [id])
+  @@id([dF_id, productId])
+  @@index([productId], map: "depotFormDetail_productId_fkey")
+}
+
+model groupproduct {
+  id   Int    @id @default(autoincrement())
+  name String
+}
+
+model media {
+  id        Int    @id @default(autoincrement())
+  url       String @db.VarChar(100)
+  altText   String @db.VarChar(255)
+  width     Int
+  height    Int
+  productId Int    @unique(map: "Media_productId_key")
+}
+
+model suppiler {
+  id         Int    @id @default(autoincrement())
+  name       String @db.VarChar(100)
+  address    String @db.VarChar(255)
+  nation     String @db.VarChar(50)
+  desciption String @db.VarChar(255)
+  depotForm  depotform[]
+}
+
+model typeproduct {
+  id          Int    @id @default(autoincrement())
+  name        String @db.VarChar(255)
+  description String @db.Text
+  products    product[]
+}
+
+enum Role {
+  admin
+  staff
+  customer
+}
