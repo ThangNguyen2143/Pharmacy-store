@@ -10,6 +10,7 @@ import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
 import { SuppilerModule } from './suppiler/suppiler.module';
 import { TypeProductModule } from './type-product/type-product.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TypeProductModule } from './type-product/type-product.module';
     CartModule,
     SuppilerModule,
     TypeProductModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

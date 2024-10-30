@@ -18,22 +18,24 @@ model user {
 }
 
 model product {
-  id            Int    @id @default(autoincrement())
-  name          String @db.VarChar(255)
+  id            Int           @id @default(autoincrement())
+  name          String        @db.VarChar(255)
   handle        String
   stored        Int
-  unit          String @db.VarChar(50)
+  unit          String        @db.VarChar(50)
   price         Float
   howPack       String
-  ingredient    String @db.VarChar(255)
+  ingredient    String        @db.VarChar(255)
   typeUse       String
   destination   String
   dosage        String
   typeProductId Int
   cartItem      cartitem[]
-  typeProduct   typeproduct @relation(fields: [typeProductId], references: [id])
-  createAt      DateTime @default(now())
-  updateAt      DateTime @updatedAt
+  orderDetail   orderDetail[]
+  typeProduct   typeproduct   @relation(fields: [typeProductId], references: [id])
+  createAt      DateTime      @default(now())
+  updateAt      DateTime      @updatedAt
+
   @@index([typeProductId], map: "product_typeProductId_fkey")
 }
 
@@ -47,27 +49,29 @@ model groupproducttoproduct {
 }
 
 model cart {
-  id            Int @id @default(autoincrement())
-  totalQuantity Int @db.SmallInt
-  cartItem cartitem[]
+  id            Int        @id @default(autoincrement())
+  totalQuantity Int        @db.SmallInt
+  cartItem      cartitem[]
 }
 
 model cartitem {
-  quantity  Int @db.TinyInt
+  quantity  Int     @db.TinyInt
   productId Int
   cartId    Int
-  cart cart @relation(fields: [cartId], references: [id])
-  product product @relation(fields: [productId], references: [id])
+  cart      cart    @relation(fields: [cartId], references: [id])
+  product   product @relation(fields: [productId], references: [id])
+
   @@id([productId, cartId])
   @@index([cartId], map: "cartItem_cartId_fkey")
 }
 
 model depotform {
-  id       Int      @id @default(autoincrement())
-  createAt DateTime @default(now())
+  id       Int               @id @default(autoincrement())
+  createAt DateTime          @default(now())
   Sup_ID   Int
-  supplier  suppiler @relation(fields: [Sup_ID], references: [id])
-  dfd     depotformdetail[]
+  supplier suppiler          @relation(fields: [Sup_ID], references: [id])
+  dfd      depotformdetail[]
+
   @@index([Sup_ID], map: "depotForm_Sup_ID_fkey")
 }
 
@@ -78,6 +82,7 @@ model depotformdetail {
   unit      String
   price     Float
   depotForm depotform @relation(fields: [dF_id], references: [id])
+
   @@id([dF_id, productId])
   @@index([productId], map: "depotFormDetail_productId_fkey")
 }
@@ -97,19 +102,48 @@ model media {
 }
 
 model suppiler {
-  id         Int    @id @default(autoincrement())
-  name       String @db.VarChar(100)
-  address    String @db.VarChar(255)
-  nation     String @db.VarChar(50)
-  desciption String @db.VarChar(255)
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(100)
+  address    String      @db.VarChar(255)
+  nation     String      @db.VarChar(50)
+  desciption String      @db.VarChar(255)
   depotForm  depotform[]
 }
 
 model typeproduct {
-  id          Int    @id @default(autoincrement())
-  name        String @db.VarChar(255)
-  description String @db.Text
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  description String    @db.Text
   products    product[]
+}
+
+model order {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  Total         Float
+  AddressRecive String        @db.VarChar(255)
+  TypePay       String        @db.VarChar(15)
+  osId          Int
+  NameRecive    String        @db.VarChar(255)
+  PhoneRecive   String        @db.VarChar(15)
+  orderDetail   orderDetail[]
+}
+
+model orderDetail {
+  oderId      Int
+  productId   Int
+  quantity    Int
+  productSale product @relation(fields: [productId], references: [id])
+  order       order   @relation(fields: [oderId], references: [id])
+
+  @@id([oderId, productId], name: "idDetail")
+}
+
+model orderstatus {
+  id     Int    @id @default(autoincrement())
+  name   String
+  nameEn String
 }
 
 enum Role {
