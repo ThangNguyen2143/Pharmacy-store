@@ -3,13 +3,16 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('product')
 export class ProductController {
@@ -21,8 +24,8 @@ export class ProductController {
   }
 
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  findAll(@Query('typeId') typeId: string) {
+    return this.productService.findAll(+typeId);
   }
 
   @Get(':handle')
@@ -30,8 +33,14 @@ export class ProductController {
     return this.productService.findByHandle(handle);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  @Post(':id')
+  @UseInterceptors(FileInterceptor('img'))
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!updateProductDto) return this.productService.updateImg(+id, file);
     return this.productService.update(+id, updateProductDto);
   }
 

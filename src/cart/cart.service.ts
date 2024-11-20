@@ -8,11 +8,11 @@ export class CartService {
     const res = await this.db.cart.create({
       data: {
         totalQuantity: 0,
+        checkoutUrl: '/payment/get-vnp-url',
       },
     });
     return {
       ...res,
-      checkoutUrl: 'something',
       lines: [],
     };
   }
@@ -31,7 +31,7 @@ export class CartService {
     const listItem = this.listItem({ CartItem: cart.cartItem, mediaList });
     return {
       id: cart.id,
-      checkoutUrl: 'something',
+      checkoutUrl: cart.checkoutUrl,
       totalQuantity: cart.totalQuantity,
       lines: listItem,
     };
@@ -41,21 +41,22 @@ export class CartService {
     id: number,
     { lines }: UpdateCartDto,
   ): Promise<CartResponse | BadRequestException> {
+    //Tìm giỏ hàng
     const cart = await this.db.cart.findUnique({
       where: { id },
       include: { cartItem: { include: { product: true } } },
     });
     if (!cart) return new BadRequestException();
-    const mediaList = await this.db.media.findMany();
+    const mediaList = await this.db.media.findMany(); // Lấy danh sách hình ảnh
     let res: {
       id: number | undefined;
       checkoutUrl: string;
       lines: CartItem[];
       totalQuantity: number;
-    };
+    }; //Định dạng kq trả về
     const itemInCart = cart.cartItem.find(
       (item) => item.productId === lines[0].productId,
-    );
+    ); //Tìm sản phẩm trong giỏ hàng
     if (itemInCart && lines[0].quantity != undefined) {
       const item = await this.updateItem(
         cart.id,
@@ -121,7 +122,7 @@ export class CartService {
           ...this.listItem({ CartItem: cart.cartItem, mediaList }),
           addAnItem,
         ],
-        checkoutUrl: 'checkoutUrl',
+        checkoutUrl: '',
         totalQuantity: cart.totalQuantity + item.quantity,
       };
     } else if (itemInCart && !lines[0].quantity) {
@@ -141,7 +142,6 @@ export class CartService {
         totalQuantity: afterCart.totalQuantity,
       };
     }
-    // Trường hợp bug: Không có quantity mà productId cũng k có trong giỏ hàng
     return res;
   }
   remove(id: number) {

@@ -11,6 +11,9 @@ import { CartModule } from './cart/cart.module';
 import { SuppilerModule } from './suppiler/suppiler.module';
 import { TypeProductModule } from './type-product/type-product.module';
 import { OrderModule } from './order/order.module';
+import { PaymentModule } from './payment/payment.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -26,6 +29,9 @@ import { OrderModule } from './order/order.module';
     SuppilerModule,
     TypeProductModule,
     OrderModule,
+    PaymentModule,
+    CloudinaryModule,
+    PdfModule,
   ],
   controllers: [AppController],
   providers: [AppService],

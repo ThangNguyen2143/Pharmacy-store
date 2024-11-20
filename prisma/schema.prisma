@@ -32,6 +32,7 @@ model product {
   typeProductId Int
   cartItem      cartitem[]
   orderDetail   orderDetail[]
+  mediaList     media[]
   typeProduct   typeproduct   @relation(fields: [typeProductId], references: [id])
   createAt      DateTime      @default(now())
   updateAt      DateTime      @updatedAt
@@ -51,6 +52,7 @@ model groupproducttoproduct {
 model cart {
   id            Int        @id @default(autoincrement())
   totalQuantity Int        @db.SmallInt
+  checkoutUrl   String     @db.Text
   cartItem      cartitem[]
 }
 
@@ -69,7 +71,7 @@ model depotform {
   id       Int               @id @default(autoincrement())
   createAt DateTime          @default(now())
   Sup_ID   Int
-  supplier suppiler          @relation(fields: [Sup_ID], references: [id])
+  supplier supplier          @relation(fields: [Sup_ID], references: [id])
   dfd      depotformdetail[]
 
   @@index([Sup_ID], map: "depotForm_Sup_ID_fkey")
@@ -93,20 +95,24 @@ model groupproduct {
 }
 
 model media {
-  id        Int    @id @default(autoincrement())
-  url       String @db.VarChar(100)
-  altText   String @db.VarChar(255)
+  id        Int     @id @default(autoincrement())
+  url       String  @db.VarChar(100)
+  altText   String  @db.VarChar(255)
   width     Int
   height    Int
-  productId Int    @unique(map: "Media_productId_key")
+  type      String
+  productId Int
+  product   product @relation(fields: [productId], references: [id], onDelete: NoAction)
+
+  @@index([productId], map: "media_productId_fkey")
 }
 
-model suppiler {
+model supplier {
   id         Int         @id @default(autoincrement())
   name       String      @db.VarChar(100)
   address    String      @db.VarChar(255)
   nation     String      @db.VarChar(50)
-  desciption String      @db.VarChar(255)
+  description String      @db.VarChar(255)
   depotForm  depotform[]
 }
 
@@ -125,9 +131,12 @@ model order {
   AddressRecive String        @db.VarChar(255)
   TypePay       String        @db.VarChar(15)
   osId          Int
+  OrderStatus   orderstatus   @relation(fields: [osId], references: [id])
   NameRecive    String        @db.VarChar(255)
   PhoneRecive   String        @db.VarChar(15)
   orderDetail   orderDetail[]
+
+  @@index([osId], map: "order_osId_fkey")
 }
 
 model orderDetail {
@@ -138,12 +147,14 @@ model orderDetail {
   order       order   @relation(fields: [oderId], references: [id])
 
   @@id([oderId, productId], name: "idDetail")
+  @@index([productId], map: "orderDetail_productId_fkey")
 }
 
 model orderstatus {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   name   String
   nameEn String
+  Order  order[]
 }
 
 enum Role {

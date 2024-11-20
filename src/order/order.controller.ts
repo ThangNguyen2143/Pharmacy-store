@@ -6,10 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import { Response } from 'express';
 
 @Controller('order')
 export class OrderController {
@@ -29,8 +34,14 @@ export class OrderController {
   findOne(@Param('id') id: string) {
     return this.orderService.findOne(+id);
   }
-
-  @Patch(':id')
+  @Get('/exportpdf/:id')
+  exportPdf(@Param('id') id: string, @Res() res: Response) {
+    const file = createReadStream(join(process.cwd(), 'package.json'));
+    // console.log(await this.orderService.exportToPdf(+id));
+    return new StreamableFile(file);
+    // return await this.orderService.exportToPdf(+id)
+  }
+  @Post(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(+id, updateOrderDto);
   }
