@@ -40,7 +40,7 @@ export class ProductController {
     @Body() updateProductDto: UpdateProductDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!updateProductDto) return this.productService.updateImg(+id, file);
+    if (file) return this.productService.updateImg(+id, file);
     return this.productService.update(+id, updateProductDto);
   }
 

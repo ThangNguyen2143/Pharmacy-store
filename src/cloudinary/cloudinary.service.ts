@@ -17,4 +17,15 @@ export class CloudinaryService {
       toStream(file.buffer).pipe(upload);
     });
   }
+  deleteImage(publicId: string) {
+    return new Promise((resolve, reject) => {
+      v2.api
+        .delete_resources([publicId], {
+          type: 'upload',
+          resource_type: 'image',
+        })
+        .then((result) => resolve(result))
+        .catch((err) => reject(err));
+    });
+  }
 }

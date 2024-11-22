@@ -139,7 +139,6 @@ export class ProductService {
   }
   async updateImg(id: number, file: Express.Multer.File) {
     const responseCld = await this.cloudinary.uploadImage(file);
-    console.log(responseCld);
     const product = await this.db.product.findUnique({ where: { id } });
     const updateProductImg = await this.db.product.update({
       where: { id },
@@ -148,7 +147,7 @@ export class ProductService {
           create: {
             url: responseCld.public_id,
             altText: product.name + responseCld.name,
-            type: responseCld.type,
+            type: responseCld.resource_type,
             height: 200,
             width: 200,
           },
