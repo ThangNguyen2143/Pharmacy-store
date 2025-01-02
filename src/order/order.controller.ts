@@ -3,11 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Res,
   StreamableFile,
+  Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -26,10 +26,17 @@ export class OrderController {
   }
 
   @Get()
-  findAll() {
-    return this.orderService.findAll();
+  findAll(@Query('query') query: string, @Query('state') state: string) {
+    return this.orderService.findAll(query, +state);
   }
-
+  @Get('/page')
+  findOnPage(
+    @Query('query') query: string,
+    @Query('page') page: string,
+    @Query('state') state: string,
+  ) {
+    return this.orderService.findAPage(query, +page, +state);
+  }
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.orderService.findOne(+id);

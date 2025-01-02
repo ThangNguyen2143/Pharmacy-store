@@ -156,7 +156,25 @@ model orderstatus {
   nameEn String
   Order  order[]
 }
-
+model img{
+  id        Int     @id @default(autoincrement())
+  url       String  @db.VarChar(100)
+  altText   String  @db.VarChar(255)
+  width     Int
+  height    Int
+  blogId Int
+  blog blog @relation(fields: [blogId], references: [id])
+}
+model blog{
+  id Int @id @default(autoincrement())
+  title String @db.VarChar(255)
+  content String @db.Text
+  state String
+  image img[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+//Thêm Blog
 enum Role {
   admin
   staff

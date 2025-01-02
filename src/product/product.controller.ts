@@ -34,16 +34,17 @@ export class ProductController {
   }
 
   @Post(':id')
-  @UseInterceptors(FileInterceptor('img'))
-  update(
-    @Param('id') id: string,
-    @Body() updateProductDto: UpdateProductDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    if (file) return this.productService.updateImg(+id, file);
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(+id, updateProductDto);
   }
-
+  @Post('/up-img/:id')
+  @UseInterceptors(FileInterceptor('img'))
+  updateImg(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.productService.updateImg(+id, file);
+  }
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productService.remove(+id);

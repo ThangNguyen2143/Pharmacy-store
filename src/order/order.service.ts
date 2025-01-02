@@ -59,12 +59,72 @@ export class OrderService {
     };
   }
 
-  async findAll() {
-    return await this.db.order.findMany({
-      include: { orderDetail: { include: { productSale: true } } },
-    });
+  async findAll(query?: string, state?: number) {
+    if (state == 0 || !state)
+      return await this.db.order.findMany({
+        where: {
+          NameRecive: {
+            contains: query,
+          },
+        },
+        include: {
+          orderDetail: {
+            include: {
+              productSale: true,
+            },
+          },
+        },
+      });
+    else
+      return await this.db.order.findMany({
+        where: {
+          NameRecive: {
+            contains: query,
+          },
+          osId: state,
+        },
+        include: {
+          orderDetail: {
+            include: {
+              productSale: true,
+            },
+          },
+        },
+      });
   }
-
+  async findAPage(query?: string, page?: number, state?: number) {
+    if (state == 0) {
+      return await this.db.order.findMany({
+        take: 10,
+        skip: (page - 1) * 10,
+        where: {
+          NameRecive: { contains: query },
+        },
+        include: {
+          orderDetail: {
+            include: {
+              productSale: true,
+            },
+          },
+        },
+      });
+    } else
+      return await this.db.order.findMany({
+        take: 10,
+        skip: (page - 1) * 10,
+        where: {
+          NameRecive: { contains: query },
+          osId: state,
+        },
+        include: {
+          orderDetail: {
+            include: {
+              productSale: true,
+            },
+          },
+        },
+      });
+  }
   findOne(id: number) {
     return `This action returns a #${id} order`;
   }

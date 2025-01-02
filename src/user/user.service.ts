@@ -41,7 +41,6 @@ export class UserService {
         if (err) {
           return reject(null);
         }
-
         bcrypt.hash(password, salt, (err2, hash) => {
           return err2 ? reject(null) : resolve(hash);
         });

@@ -14,6 +14,7 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { PdfModule } from './pdf/pdf.module';
+import { BlogModule } from './blog/blog.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PdfModule } from './pdf/pdf.module';
     PaymentModule,
     CloudinaryModule,
     PdfModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

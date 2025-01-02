@@ -39,14 +39,14 @@ export class AuthService {
         accessToken: await this.jwtService.signAsync(
           { username: user.username, sub: { email: user.email } },
           {
-            secret: 'IIDqOqiTcRtZlosh5PIthimWGzAAGJirigqSuNaQpec',
+            secret: process.env.JWT_SERECT,
             expiresIn: '60s',
           },
         ),
         refreshToken: await this.jwtService.signAsync(
           { username: user.username, sub: { email: user.email } },
           {
-            secret: 'IIDqOqiTcRtZlosh5PIthimWGzAAGJirigqSuNaQpec',
+            secret: process.env.JWT_SERECT,
             expiresIn: '7d',
           },
         ),

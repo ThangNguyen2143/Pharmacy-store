@@ -38,7 +38,7 @@ export class PaymentService {
       vnp_TxnRef: orderInfor.OrderId,
       vnp_OrderInfo: orderInfor.Orderinfo,
       vnp_OrderType: ProductCode.Pharmacy_MedicalServices,
-      vnp_ReturnUrl: 'http://localhost:8000/payment/vnp-return',
+      vnp_ReturnUrl: process.env.VNP_RETURNURL,
       vnp_Locale: VnpLocale.VN, // 'vn' hoặc 'en'
       vnp_CreateDate: dateFormat(orderInfor.createAt), // tùy chọn, mặc định là hiện tại
     });
@@ -77,7 +77,7 @@ export class PaymentService {
       // Tìm đơn hàng trong database của bạn
       const foundOrder = await this.db.order.findUnique({
         where: { id: +verify.vnp_TxnRef },
-      }); // Hàm tìm đơn hàng theo id, bạn cần tự cài đặt
+      }); // Hàm tìm đơn hàng theo id
 
       // Nếu không tìm thấy đơn hàng hoặc mã đơn hàng không khớp
       if (!foundOrder || +verify.vnp_TxnRef !== foundOrder.id) {
@@ -93,15 +93,10 @@ export class PaymentService {
       if (foundOrder.osId === 6) {
         return response.json(InpOrderAlreadyConfirmed);
       }
-      /**
-       * Sau khi xác thực đơn hàng hoàn tất,
-       * bạn có thể cập nhật trạng thái đơn hàng trong database của bạn
-       */
       await this.db.order.update({
         where: { id: foundOrder.id },
         data: { osId: 6 },
       }); // Hàm cập nhật trạng thái đơn hàng
-      // Sau đó cập nhật trạng thái về cho VNPay biết rằng bạn đã xác nhận đơn hàng
       return IpnSuccess;
     } catch (error) {
       /**
