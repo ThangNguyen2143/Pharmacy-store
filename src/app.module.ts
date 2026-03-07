@@ -8,13 +8,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtTokenMiddleware } from './untils/middleware/jwt-token.middleware';
 import { ProductModule } from './product/product.module';
 import { CartModule } from './cart/cart.module';
-import { SuppilerModule } from './suppiler/suppiler.module';
-import { TypeProductModule } from './type-product/type-product.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { PdfModule } from './pdf/pdf.module';
 import { BlogModule } from './blog/blog.module';
+import { BatchModule } from './batch/batch.module';
 
 @Module({
   imports: [
@@ -27,13 +26,12 @@ import { BlogModule } from './blog/blog.module';
     }),
     ProductModule,
     CartModule,
-    SuppilerModule,
-    TypeProductModule,
     OrderModule,
     PaymentModule,
     CloudinaryModule,
     PdfModule,
     BlogModule,
+    BatchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

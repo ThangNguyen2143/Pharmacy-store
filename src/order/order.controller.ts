@@ -16,7 +16,7 @@ import { createReadStream } from 'fs';
 import { join } from 'path';
 import { Response } from 'express';
 
-@Controller('order')
+@Controller('/api/order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 

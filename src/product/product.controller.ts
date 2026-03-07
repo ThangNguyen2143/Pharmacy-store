@@ -5,46 +5,44 @@ import {
   Body,
   Param,
   Delete,
-  Query,
-  UseInterceptors,
-  UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { UpdateImgProductDto } from './dto/update-img.dto';
 
-@Controller('product')
+@Controller('/api/product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
-
+  @UseGuards(JwtGuard)
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }
-
+  @UseGuards(JwtGuard)
   @Get()
-  findAll(@Query('typeId') typeId: string) {
-    return this.productService.findAll(+typeId);
+  findAll() {
+    return this.productService.findAll();
   }
-
-  @Get(':handle')
-  findOne(@Param('handle') handle: string) {
-    return this.productService.findByHandle(handle);
+  @Get('active')
+  GetAllProductActive() {
+    return this.productService.findAllItemActive();
   }
-
+  @UseGuards(JwtGuard)
   @Post(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(+id, updateProductDto);
   }
-  @Post('/up-img/:id')
-  @UseInterceptors(FileInterceptor('img'))
-  updateImg(
-    @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.productService.updateImg(+id, file);
+  @UseGuards(JwtGuard)
+  @Post('/up-img')
+  // @UseInterceptors(FileInterceptor('img'))
+  updateImg(@Body() data: UpdateImgProductDto) {
+    // return this.productService.updateImg(data);
+    return this.productService.updateInfoImg(data);
   }
+  @UseGuards(JwtGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productService.remove(+id);

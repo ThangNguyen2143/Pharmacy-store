@@ -2,29 +2,30 @@ import { Injectable } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { DatabaseService } from 'src/database/database.service';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class BlogService {
-  constructor(
-    private db: DatabaseService,
-    private cloudinary: CloudinaryService,
-  ) {}
-  async create(createBlogDto: CreateBlogDto, file: Express.Multer.File) {
-    const responseCld = await this.cloudinary.uploadImage(file);
+  constructor(private db: DatabaseService) {}
+  async create(createBlogDto: CreateBlogDto) {
+    // const responseCld = await this.cloudinary.uploadImage(file);
+    if (!createBlogDto.images || createBlogDto.images.length === 0) {
+      createBlogDto.images.forEach(async (url, i) => {
+        await this.db.media.create({
+          data: {
+            url,
+            altText: createBlogDto.title + ' Minh Hoạ ' + (i + 1),
+            height: 0,
+            width: 0,
+            type: 'img',
+          },
+        });
+      });
+    }
     const newBlog = await this.db.blog.create({
       data: {
         title: createBlogDto.title,
         content: createBlogDto.content,
         state: 'Chưa duyệt',
-        image: {
-          create: {
-            url: responseCld.public_id,
-            altText: createBlogDto.title + ' Minh Hoạ 1',
-            height: responseCld.height,
-            width: responseCld.width,
-          },
-        },
       },
     });
 

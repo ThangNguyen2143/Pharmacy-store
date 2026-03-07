@@ -6,25 +6,18 @@ import {
   Patch,
   Param,
   Delete,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller('blog')
+@Controller('/api/blog')
 export class BlogController {
   constructor(private readonly blogService: BlogService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('img'))
-  create(
-    @Body() createBlogDto: CreateBlogDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.blogService.create(createBlogDto, file);
+  create(@Body() createBlogDto: CreateBlogDto) {
+    return this.blogService.create(createBlogDto);
   }
 
   @Get()

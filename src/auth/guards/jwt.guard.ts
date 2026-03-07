@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { PayloadTokenDto } from '../dto/payload-token.dto';
 @Injectable()
 export class JwtGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
@@ -15,15 +16,16 @@ export class JwtGuard implements CanActivate {
     if (!token) throw new UnauthorizedException();
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: 'IIDqOqiTcRtZlosh5PIthimWGzAAGJirigqSuNaQpec',
+        secret: process.env.JWT_SECRET!,
       });
-      request['user'] = payload;
+      request['user'] = payload as PayloadTokenDto;
     } catch {
       throw new UnauthorizedException();
     }
     return true;
   }
   private extractTokenFromHeader(request: Request) {
+    if (!request.headers.authorization) return undefined;
     const [type, token] = request.headers.authorization.split(' ') || [];
     return type === 'Bearer' ? token : undefined;
   }

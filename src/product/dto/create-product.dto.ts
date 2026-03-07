@@ -1,12 +1,30 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
+
 export class CreateProductDto {
+  @ApiProperty({
+    description: 'Tên sản phẩm',
+  })
+  @IsNotEmpty()
   name: string;
-  ingredient: string;
-  howPack: string;
-  typeUse: string;
-  stored: number;
+  @ApiProperty({
+    description: 'Đơn vị tính của sản phẩm',
+  })
+  @IsNotEmpty()
   unit: string;
+  @ApiProperty({
+    description: 'Giá của sản phẩm',
+  })
+  @IsNotEmpty()
   price: number;
-  dosage: string;
-  destination: string;
-  typeProductId: number;
+  @ApiProperty({
+    description: 'Mã sản phẩm nội bộ',
+  })
+  @IsNotEmpty()
+  sku: string;
+  @ApiProperty({
+    description: 'Loại mặt hàng',
+  })
+  @IsNotEmpty()
+  typeProduct: string;
 }

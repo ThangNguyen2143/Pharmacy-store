@@ -134,7 +134,7 @@ export class PdfService {
   }
 
   async render(): Promise<string> {
-    await this.addPageNumbers();
+    this.addPageNumbers();
     await this.index();
     return new Promise<string>((resolve, reject) => {
       this.doc.save(this.filePath);

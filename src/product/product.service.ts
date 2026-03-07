@@ -3,6 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UpdateImgProductDto } from './dto/update-img.dto';
 
 @Injectable()
 export class ProductService {
@@ -15,21 +16,17 @@ export class ProductService {
       where: { name: createProductDto.name },
     });
     if (findProduct) return new BadRequestException();
+    const type =
+      createProductDto.typeProduct == 'medicine' ? 'medicine' : 'herb';
     const newProduct = await this.db.product.create({
       data: {
-        destination: createProductDto.destination,
-        dosage: createProductDto.dosage,
-        handle: createProductDto.name.replaceAll(' ', '-'),
-        howPack: createProductDto.howPack,
-        ingredient: createProductDto.ingredient,
         name: createProductDto.name,
         price: createProductDto.price,
-        stored: createProductDto.stored,
-        typeUse: createProductDto.typeUse,
         unit: createProductDto.unit,
-        typeProduct: { connect: { id: createProductDto.typeProductId } },
+        sku: createProductDto.sku,
+        status: 'inactive',
+        type,
       },
-      include: { typeProduct: true },
     });
     if (!newProduct) return new BadRequestException();
     return {
@@ -38,83 +35,38 @@ export class ProductService {
         value: newProduct.price,
         currencyCode: 'VND',
       },
-      availableForSale: true,
-      updatedAt: Date.now(),
-      images: [
-        {
-          url: '',
-          altText: '',
-          width: 382,
-          height: 226,
-        },
-      ],
+      availableForSale: false,
+      updatedAt: newProduct.updateAt,
     };
   }
-  async findAll(typeId?: number) {
+  async findAll() {
     const res = await this.db.product.findMany({
-      include: { typeProduct: true, mediaList: true },
+      include: { mediaList: true },
     });
-    const result = res
-      .filter((item) => {
-        if (typeId) return item.typeProductId == typeId;
-        else return item;
-      })
-      .map((item) => {
-        return {
-          id: item.id,
-          name: item.name,
-          handle: item.handle,
-          unit: item.unit,
-          availableForSale: item.stored > 0 ? true : false,
-          price: {
-            value: item.price,
-            currencyCode: 'VND',
-          },
-          images: item.mediaList,
-          updatedAt: item.updateAt,
-
-          ingredient: item.ingredient, // Thành phần của thuốc
-
-          howPack: item.howPack, // Quy cách
-          typeUse: item.typeUse, // Đường dùng
-
-          stored: item.stored, //kho
-
-          dosage: item.dosage,
-          destination: item.destination,
-          typeProduct: item.typeProduct,
-        };
-      });
+    return res;
+  }
+  async findAllItemActive() {
+    const res = await this.db.product.findMany({
+      where: { status: 'active' },
+      include: { mediaList: true },
+    });
+    const result = res.map((item) => {
+      return {
+        id: item.id,
+        name: item.name,
+        unit: item.unit,
+        availableForSale: true,
+        price: {
+          value: item.price,
+          currencyCode: 'VND',
+        },
+      };
+    });
     return result;
   }
 
   async findOne(id: number) {
     return await this.db.product.findUnique({ where: { id } });
-  }
-  async findByHandle(handle: string) {
-    let res = await this.db.product.findFirst({
-      where: { handle },
-      include: { typeProduct: true, mediaList: true },
-    });
-    if (!res) {
-      const convert = handle.replaceAll('-', ' ');
-      res = await this.db.product.findFirst({
-        where: { name: convert },
-        include: { typeProduct: true, mediaList: true },
-      });
-      if (!res) return new BadRequestException();
-    }
-    const result = {
-      ...res,
-      availableForSale: res.stored > 0 ? true : false,
-      price: {
-        value: res.price,
-        currencyCode: 'VND',
-      },
-      images: res.mediaList,
-      updatedAt: res.updateAt,
-    };
-    return result;
   }
   async update(id: number, updateProductDto: UpdateProductDto) {
     const product = await this.db.product.findFirst({
@@ -124,11 +76,11 @@ export class ProductService {
     const res = await this.db.product.update({
       where: { id },
       data: updateProductDto,
-      include: { mediaList: true, typeProduct: true },
+      include: { mediaList: true },
     });
     return {
       ...res,
-      availableForSale: res.stored > 0 ? true : false,
+      availableForSale: true,
       price: {
         value: res.price,
         currencyCode: 'VND',
@@ -139,17 +91,47 @@ export class ProductService {
   }
   async updateImg(id: number, file: Express.Multer.File) {
     const responseCld = await this.cloudinary.uploadImage(file);
-    const product = await this.db.product.findUnique({ where: { id } });
+    const media = await this.db.media.create({
+      data: {
+        url: responseCld.public_id,
+        altText: responseCld.name,
+        type: responseCld.resource_type,
+        height: 200,
+        width: 200,
+      },
+    });
     const updateProductImg = await this.db.product.update({
       where: { id },
       data: {
         mediaList: {
           create: {
-            url: responseCld.public_id,
-            altText: product.name + responseCld.name,
-            type: responseCld.resource_type,
-            height: 200,
-            width: 200,
+            mediaId: media.id,
+          },
+        },
+      },
+    });
+    return { message: 'Cập nhật hình ảnh thành công', data: updateProductImg };
+  }
+  async updateInfoImg(data: UpdateImgProductDto) {
+    const exitsMedia = await this.db.media.findFirst({
+      where: { url: data.url },
+    });
+    if (exitsMedia) return new BadRequestException();
+    const media = await this.db.media.create({
+      data: {
+        url: data.url,
+        altText: data.altText,
+        type: data.type,
+        height: data.height,
+        width: data.width,
+      },
+    });
+    const updateProductImg = await this.db.product.update({
+      where: { id: data.product_id },
+      data: {
+        mediaList: {
+          create: {
+            mediaId: media.id,
           },
         },
       },

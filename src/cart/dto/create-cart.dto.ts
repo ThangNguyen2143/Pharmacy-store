@@ -4,15 +4,9 @@ export type Money = {
 };
 export type CartProduct = {
   id: number;
-  handle: string;
   title: string;
   unit: string;
-  featuredImage: {
-    url: string;
-    altText: string;
-    width: number;
-    height: number;
-  };
+  urlImage: string;
 };
 export type CartItem = {
   quantity: number;

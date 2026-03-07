@@ -3,180 +3,213 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model user {
-  id       Int      @id @default(autoincrement())
-  username String   @db.VarChar(255)
-  email    String   @unique @db.VarChar(255)
-  password String   @db.VarChar(255)
-  role     Role
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
+model User {
+  id        Int            @id @default(autoincrement())
+  username  String         @db.VarChar(255) //This is full name of user
+  email     String?        @unique @db.VarChar(255)
+  phone     String         @unique @db.VarChar(15)
+  password  String         @db.VarChar(255)
+  role      Role
+  createAt  DateTime       @default(now())
+  updateAt  DateTime       @updatedAt
+  orderData UserDataOrder?
+  sessions  Session[]
+  cart      Cart?
 }
 
-model product {
-  id            Int           @id @default(autoincrement())
-  name          String        @db.VarChar(255)
-  handle        String
-  stored        Int
-  unit          String        @db.VarChar(50)
-  price         Float
-  howPack       String
-  ingredient    String        @db.VarChar(255)
-  typeUse       String
-  destination   String
-  dosage        String
-  typeProductId Int
-  cartItem      cartitem[]
-  orderDetail   orderDetail[]
-  mediaList     media[]
-  typeProduct   typeproduct   @relation(fields: [typeProductId], references: [id])
-  createAt      DateTime      @default(now())
-  updateAt      DateTime      @updatedAt
+model Session {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  createAt   DateTime  @default(now())
+  updateAt   DateTime  @updatedAt
+  refreshAt  DateTime  @default(now())
+  expires    DateTime
+  revokedAt  DateTime?
+  dataDevice Json      @db.JsonB
 
-  @@index([typeProductId], map: "product_typeProductId_fkey")
+  refreshToken RefreshToken[]
+  user         User           @relation(fields: [userId], references: [id], map: "Session_userId_relation")
+
+  @@index([userId], map: "Session_userId_fkey")
 }
 
-model groupproducttoproduct {
-  A Int
-  B Int
+model RefreshToken {
+  id           String   @id @default(uuid())
+  refreshToken String   @unique @db.VarChar(255)
+  revoked      Boolean  @default(false)
+  userId       Int
+  expires      DateTime
+  sessionId    Int
+  createAt     DateTime @default(now())
+  updateAt     DateTime @updatedAt
+  session      Session  @relation(fields: [sessionId], references: [id], map: "RefreshToken_sessionId_relation")
 
-  @@unique([A, B], map: "_groupProductToproduct_AB_unique")
-  @@index([B], map: "_groupProductToproduct_B_index")
-  @@map("_groupproducttoproduct")
+  @@index([userId], map: "RefreshToken_userId_fkey")
 }
 
-model cart {
+model UserDataOrder {
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id], map: "UserData_userId_relation")
+  orders Order[]
+}
+
+model Product {
+  id          Int            @id @default(autoincrement())
+  name        String         @db.VarChar(255)
+  unit        String         @db.VarChar(50)
+  price       Float
+  createAt    DateTime       @default(now())
+  updateAt    DateTime       @updatedAt
+  type        TypeProduct
+  sku         String         @db.VarChar(100) //Mã sản phẩm nội bộ
+  status      String         @db.VarChar(50) //active/inactive
+  mediaList   ProductMedia[]
+  cartItem    Cartitem[]
+  orderDetail OrderDetail[]
+  batch       Batch[]
+}
+
+model Cart {
   id            Int        @id @default(autoincrement())
   totalQuantity Int        @db.SmallInt
   checkoutUrl   String     @db.Text
-  cartItem      cartitem[]
+  cartItem      Cartitem[]
+  userId        Int        @unique
+  user          User       @relation(fields: [userId], references: [id], map: "Cart_userId_relation")
 }
 
-model cartitem {
-  quantity  Int     @db.TinyInt
+model Cartitem {
+  quantity  Int     @db.SmallInt
   productId Int
   cartId    Int
-  cart      cart    @relation(fields: [cartId], references: [id])
-  product   product @relation(fields: [productId], references: [id])
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   @@id([productId, cartId])
   @@index([cartId], map: "cartItem_cartId_fkey")
 }
 
-model depotform {
-  id       Int               @id @default(autoincrement())
-  createAt DateTime          @default(now())
-  Sup_ID   Int
-  supplier supplier          @relation(fields: [Sup_ID], references: [id])
-  dfd      depotformdetail[]
+model InventoryLot {
+  id           Int   @id @default(autoincrement())
+  batch_Id     Int
+  qty_on_hand  Int
+  qty_reserved Int
+  batch        Batch @relation(fields: [batch_Id], references: [id])
 
-  @@index([Sup_ID], map: "depotForm_Sup_ID_fkey")
+  @@index([batch_Id], map: "inventoryLot_batch_Id_fkey")
 }
 
-model depotformdetail {
-  dF_id     Int
+model HistoryInventory {
+  id         Int      @id @default(autoincrement())
+  batch_Id   Int
+  type       String   @db.VarChar(20) //ENUM('IN','OUT','RETURN_IN','RETURN_OUT','ADJUST')
+  qty        Int
+  ref_type   String   @db.VarChar(20) //ENUM('PURCHASE','SALE','SUPPLIER_RETURN','CUSTOMER_RETURN','MANUAL')
+  ref_id     Int?
+  created_at DateTime @default(now())
+  batch      Batch    @relation(fields: [batch_Id], references: [id])
+}
+
+model ProductMedia {
   productId Int
-  quantity  Int
-  unit      String
-  price     Float
-  depotForm depotform @relation(fields: [dF_id], references: [id])
+  mediaId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  media     Media   @relation(fields: [mediaId], references: [id])
 
-  @@id([dF_id, productId])
-  @@index([productId], map: "depotFormDetail_productId_fkey")
+  @@id([productId, mediaId])
+  @@index([mediaId], map: "productMedia_mediaId_fkey")
 }
 
-model groupproduct {
-  id   Int    @id @default(autoincrement())
-  name String
+model Media {
+  id           Int            @id @default(autoincrement())
+  url          String         @db.Text
+  altText      String         @db.VarChar(255)
+  width        Int
+  height       Int
+  type         String
+  productMedia ProductMedia[]
+  img          Img[]
 }
 
-model media {
-  id        Int     @id @default(autoincrement())
-  url       String  @db.VarChar(100)
-  altText   String  @db.VarChar(255)
-  width     Int
-  height    Int
-  type      String
-  productId Int
-  product   product @relation(fields: [productId], references: [id], onDelete: NoAction)
-
-  @@index([productId], map: "media_productId_fkey")
+model Batch {
+  id               Int                @id @default(autoincrement())
+  supplier_name    String             @db.VarChar(100)
+  nation           String             @db.VarChar(50)
+  expire_date      DateTime
+  import_price     Float
+  import_date      DateTime
+  productId        Int
+  product          Product            @relation(fields: [productId], references: [id], onDelete: NoAction, map: "batch_productId_relation")
+  inventoryLot     InventoryLot[]
+  historyInventory HistoryInventory[]
 }
 
-model supplier {
-  id         Int         @id @default(autoincrement())
-  name       String      @db.VarChar(100)
-  address    String      @db.VarChar(255)
-  nation     String      @db.VarChar(50)
-  description String      @db.VarChar(255)
-  depotForm  depotform[]
-}
-
-model typeproduct {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(255)
-  description String    @db.Text
-  products    product[]
-}
-
-model order {
-  id            Int           @id @default(autoincrement())
-  createdAt     DateTime      @default(now())
+model Order {
+  id            Int            @id @default(autoincrement())
+  createdAt     DateTime       @default(now())
   updatedAt     DateTime
   Total         Float
-  AddressRecive String        @db.VarChar(255)
-  TypePay       String        @db.VarChar(15)
+  AddressRecive String         @db.VarChar(255)
+  TypePay       String         @db.VarChar(15)
   osId          Int
-  OrderStatus   orderstatus   @relation(fields: [osId], references: [id])
-  NameRecive    String        @db.VarChar(255)
-  PhoneRecive   String        @db.VarChar(15)
-  orderDetail   orderDetail[]
+  OrderStatus   Orderstatus    @relation(fields: [osId], references: [id], map: "order_osId_relation")
+  NameRecive    String         @db.VarChar(255)
+  PhoneRecive   String         @db.VarChar(15)
+  userId        Int?
+  userData      UserDataOrder? @relation(fields: [userId], references: [userId], map: "order_userId_relation")
+  orderDetail   OrderDetail[]
 
   @@index([osId], map: "order_osId_fkey")
 }
 
-model orderDetail {
+model OrderDetail {
   oderId      Int
   productId   Int
   quantity    Int
-  productSale product @relation(fields: [productId], references: [id])
-  order       order   @relation(fields: [oderId], references: [id])
+  price_sale  Float
+  productSale Product @relation(fields: [productId], references: [id], map: "orderDetail_productId_relation")
+  order       Order   @relation(fields: [oderId], references: [id])
 
   @@id([oderId, productId], name: "idDetail")
   @@index([productId], map: "orderDetail_productId_fkey")
 }
 
-model orderstatus {
+model Orderstatus {
   id     Int     @id @default(autoincrement())
   name   String
   nameEn String
-  Order  order[]
+  order  Order[]
 }
-model img{
-  id        Int     @id @default(autoincrement())
-  url       String  @db.VarChar(100)
-  altText   String  @db.VarChar(255)
-  width     Int
-  height    Int
-  blogId Int
-  blog blog @relation(fields: [blogId], references: [id])
+
+model Img {
+  mediaId Int   @id @default(autoincrement())
+  blogId  Int
+  blog    Blog  @relation(fields: [blogId], references: [id])
+  media   Media @relation(fields: [mediaId], references: [id])
 }
-model blog{
-  id Int @id @default(autoincrement())
-  title String @db.VarChar(255)
-  content String @db.Text
-  state String
-  image img[]
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  content   String   @db.Text
+  state     String
+  image     Img[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-//Thêm Blog
+
 enum Role {
   admin
   staff
   customer
+}
+
+enum TypeProduct {
+  herb
+  medicine
 }

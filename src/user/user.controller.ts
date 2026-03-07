@@ -7,10 +7,12 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { ApiBearerAuth } from '@nestjs/swagger/dist/decorators/api-bearer.decorator';
 
-@Controller('user')
+@Controller('/api/user')
 export class UserController {
   constructor(private userService: UserService) {}
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtGuard)
   @Get(':id')
   async getUserProfile(@Param('id', ParseIntPipe) id: number) {
