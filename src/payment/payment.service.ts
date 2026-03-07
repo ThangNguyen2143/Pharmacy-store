@@ -4,7 +4,6 @@ import { VnpayService } from 'nestjs-vnpay';
 import { DatabaseService } from 'src/database/database.service';
 import {
   Bank,
-  dateFormat,
   InpOrderAlreadyConfirmed,
   IpnFailChecksum,
   IpnInvalidAmount,
@@ -30,17 +29,16 @@ export class PaymentService {
     OrderId: string;
     Orderinfo: string;
     amount: number;
-    createAt: Date;
+    ipAddress: string;
   }) {
     const paymentUrl = this.vnpayService.buildPaymentUrl({
       vnp_Amount: orderInfor.amount,
-      vnp_IpAddr: '13.160.92.202',
+      vnp_IpAddr: orderInfor.ipAddress || '13.160.92.202',
       vnp_TxnRef: orderInfor.OrderId,
       vnp_OrderInfo: orderInfor.Orderinfo,
       vnp_OrderType: ProductCode.Pharmacy_MedicalServices,
       vnp_ReturnUrl: process.env.VNP_RETURNURL,
       vnp_Locale: VnpLocale.VN, // 'vn' hoặc 'en'
-      vnp_CreateDate: dateFormat(orderInfor.createAt), // tùy chọn, mặc định là hiện tại
     });
     return { paymentUrl };
   }
@@ -58,7 +56,8 @@ export class PaymentService {
       if (!verify.isSuccess) {
         return { message: 'Thanh toán đã huỷ', type: 'Không thành công' };
       }
-    } catch (error) {
+    } catch (e) {
+      console.log(e);
       return { message: 'Dữ liệu không hợp lệ', type: 'Lỗi dữ liệu' };
     }
 

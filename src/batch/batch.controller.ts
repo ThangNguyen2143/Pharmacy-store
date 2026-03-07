@@ -12,8 +12,10 @@ import { BatchService } from './batch.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(JwtGuard)
+@ApiBearerAuth('access-token')
 @Controller('/api/batch')
 export class BatchController {
   constructor(private readonly batchService: BatchService) {}

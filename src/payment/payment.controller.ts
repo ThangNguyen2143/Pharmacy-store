@@ -11,13 +11,13 @@ export class PaymentController {
     @Query('orderid') orderId: string,
     @Query('orderinfo') orderInfo: string,
     @Query('total') amount: string,
-    @Query('createAt') createAt: string,
+    @Req() req: Request,
   ) {
     const orderInfor = {
       OrderId: orderId,
       Orderinfo: orderInfo,
       amount: +amount,
-      createAt: new Date(+createAt),
+      ipAddress: req.ip,
     };
     return this.paymentService.createdPaymentURL(orderInfor);
   }

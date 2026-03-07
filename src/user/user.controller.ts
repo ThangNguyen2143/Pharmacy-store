@@ -8,6 +8,7 @@ import {
 import { UserService } from './user.service';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { ApiBearerAuth } from '@nestjs/swagger/dist/decorators/api-bearer.decorator';
+import ResponseHelper from 'src/untils/helper/ResponseModel';
 
 @Controller('/api/user')
 export class UserController {
@@ -16,6 +17,10 @@ export class UserController {
   @UseGuards(JwtGuard)
   @Get(':id')
   async getUserProfile(@Param('id', ParseIntPipe) id: number) {
-    return await this.userService.findById(id);
+    const user = await this.userService.findById(id);
+    if (user) {
+      return ResponseHelper.ResponseSuccess(user);
+    }
+    return ResponseHelper.ResponseNotFound();
   }
 }

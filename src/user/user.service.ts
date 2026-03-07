@@ -49,7 +49,7 @@ export class UserService {
       : null;
   }
   async findById(id: number) {
-    return this.db.user.findUnique({ where: { id } });
+    return await this.db.user.findUnique({ where: { id } });
   }
   async changePassword(userId: number, newPassword: string) {
     if (!userId || !newPassword) {
@@ -213,7 +213,7 @@ export class UserService {
     if (session.type === 'error' || !session.sessionId) {
       return [false, 'Lỗi tạo session'];
     }
-    const newRefreshTokenRecord = await this.db.refreshToken.create({
+    await this.db.refreshToken.create({
       data: {
         refreshToken: await this.hashPassword(refreshToken),
         userId,
