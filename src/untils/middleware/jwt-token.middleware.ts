@@ -44,7 +44,14 @@ export class JwtTokenMiddleware implements NestMiddleware {
    * verify token
    */
   private verifyToken(token: string): boolean {
-    return !!this.jwtService.verify(token);
+    try {
+      this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET!,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -52,8 +59,10 @@ export class JwtTokenMiddleware implements NestMiddleware {
    */
   private getBearerToken(req: any): string {
     try {
-      return req.headers.authorization.split(' ')[1];
-    } catch (error) {
+      const [type, token] = req.headers.authorization.split(' ');
+      if (type !== 'Bearer' || !token) return null;
+      return token;
+    } catch {
       return null;
     }
   }

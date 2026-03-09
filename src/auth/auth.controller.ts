@@ -19,6 +19,7 @@ import { JwtGuard } from './guards/jwt.guard';
 import { ApiBearerAuth } from '@nestjs/swagger/dist/decorators/api-bearer.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ApiHeaders } from '@nestjs/swagger';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('/api/auth')
 export class AuthController {
@@ -47,7 +48,7 @@ export class AuthController {
   @UseGuards(RefreshJwtGuard)
   @Post('refresh')
   @UseInterceptors(SetAccessTokenHeaderInterceptor)
-  async refreshToken(@Body() data: { deviceId: string }, @Request() req: any) {
+  async refreshToken(@Body() data: RefreshTokenDto, @Request() req: any) {
     return await this.authService.refreshToken(
       req.headers['authorization'],
       data.deviceId,

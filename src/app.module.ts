@@ -21,8 +21,7 @@ import { BatchModule } from './batch/batch.module';
     UserModule,
     AuthModule,
     JwtModule.register({
-      secret: 'IIDqOqiTcRtZlosh5PIthimWGzAAGJirigqSuNaQpec',
-      signOptions: { expiresIn: ' 1h' },
+      signOptions: { expiresIn: '1h' },
     }),
     ProductModule,
     CartModule,

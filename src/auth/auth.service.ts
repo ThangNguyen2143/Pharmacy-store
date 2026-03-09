@@ -179,27 +179,15 @@ export class AuthService {
     return ResponseHelper.ResponseSuccess('Cập nhật mật khẩu thành công');
   }
   private async generateAuthToken(payload: any): Promise<TokenDto> {
-    const optionsSign = (type: string) => {
-      return {
-        expiresIn:
-          type === 'access'
-            ? this.TIME_EXPIRE_ACCESS
-            : this.TIME_EXPIRE_REFRESH,
-        secret:
-          type === 'access'
-            ? process.env.JWT_SECRET!
-            : process.env.JWT_REFRESH_TOKEN_SECRET!,
-      };
-    };
-    const accessToken = await this.jwtService.signAsync(
-      payload,
-      optionsSign('access'),
-    );
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: this.TIME_EXPIRE_ACCESS,
+      secret: process.env.JWT_SECRET!,
+    });
 
-    const refreshToken = await this.jwtService.signAsync(
-      payload,
-      optionsSign('refresh'),
-    );
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: this.TIME_EXPIRE_REFRESH,
+      secret: process.env.JWT_REFRESH_TOKEN_SECRET!,
+    });
     return { accessToken, refreshToken };
   }
   private async decodeToken(token: string) {

@@ -1,6 +1,11 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
+
 export class RefreshTokenDto {
   /**
    * access token
    */
-  readonly refreshToken: string;
+  @ApiProperty({ type: 'string', description: 'Id thiết bị' })
+  @IsNotEmpty()
+  readonly deviceId: string;
 }
