@@ -13,6 +13,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { UpdateImgProductDto } from './dto/update-img.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import ResponseHelper from 'src/untils/helper/ResponseModel';
 
 @Controller('/api/product')
 export class ProductController {
@@ -26,12 +27,16 @@ export class ProductController {
   @UseGuards(JwtGuard)
   @ApiBearerAuth('access-token')
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  async findAll() {
+    const list = await this.productService.findAll();
+    if (!list || list.length == 0) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(list);
   }
   @Get('active')
-  GetAllProductActive() {
-    return this.productService.findAllItemActive();
+  async GetAllProductActive() {
+    const list = await this.productService.findAllItemActive();
+    if (!list || list.length == 0) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(list);
   }
   @UseGuards(JwtGuard)
   @ApiBearerAuth('access-token')

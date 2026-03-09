@@ -15,6 +15,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import { Response } from 'express';
+import ResponseHelper from 'src/untils/helper/ResponseModel';
 
 @Controller('/api/order')
 export class OrderController {
@@ -26,20 +27,26 @@ export class OrderController {
   }
 
   @Get()
-  findAll(@Query('query') query: string, @Query('state') state: string) {
-    return this.orderService.findAll(query, +state);
+  async findAll(@Query('query') query: string, @Query('state') state: string) {
+    const list = await this.orderService.findAll(query, +state);
+    if (!list || list.length == 0) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(list);
   }
   @Get('/page')
-  findOnPage(
+  async findOnPage(
     @Query('query') query: string,
     @Query('page') page: string,
     @Query('state') state: string,
   ) {
-    return this.orderService.findAPage(query, +page, +state);
+    const list = await this.orderService.findAPage(query, +page, +state);
+    if (!list || list.length == 0) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(list);
   }
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const anOrder = await this.orderService.findOne(+id);
+    if (!anOrder) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(anOrder);
   }
   @Get('/exportpdf/:id')
   exportPdf(@Param('id') id: string, @Res() res: Response) {

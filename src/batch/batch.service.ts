@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
 import { DatabaseService } from 'src/database/database.service';
+import ResponseHelper from 'src/untils/helper/ResponseModel';
 
 @Injectable()
 export class BatchService {
@@ -12,7 +13,7 @@ export class BatchService {
       where: { id: batchData.productId },
     });
     if (!existingProduct) {
-      throw new Error('Product not found');
+      return ResponseHelper.ResponseData();
     }
     return this.db.$transaction(async (tx) => {
       const batch = await tx.batch.create({
@@ -36,16 +37,20 @@ export class BatchService {
         },
       });
 
-      return batch;
+      return ResponseHelper.ResponseSuccess(batch);
     });
   }
 
-  findAll() {
-    return this.db.batch.findMany();
+  async findAll() {
+    const listBatch = await this.db.batch.findMany();
+    if (listBatch.length == 0) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(listBatch);
   }
 
-  findOne(id: number) {
-    return this.db.batch.findUnique({ where: { id } });
+  async findOne(id: number) {
+    const batchFound = await this.db.batch.findUnique({ where: { id } });
+    if (!batchFound) return ResponseHelper.ResponseNotFound();
+    return ResponseHelper.ResponseSuccess(batchFound);
   }
 
   update(id: number, updateBatchDto: UpdateBatchDto) {

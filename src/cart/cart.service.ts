@@ -29,7 +29,7 @@ export class CartService {
         cartItem: { include: { product: { include: { mediaList: true } } } },
       },
     });
-    if (!cart) return new BadRequestException();
+    if (!cart) return null;
     const mediaList = await this.db.media.findMany();
     const productList = await this.db.product.findMany({
       include: {
